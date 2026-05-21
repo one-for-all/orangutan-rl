@@ -12,4 +12,10 @@ impl Agent {
     pub fn get_action_and_value(&self, obs: isize) -> (isize, f32, f32) {
         (1, 0., 0.)
     }
+
+    /// 0 -> move left, 1 -> move left
+    /// For now, fix the action to be moving left
+    pub fn react(&mut self, state: &isize) -> usize {
+        0
+    }
 }

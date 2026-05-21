@@ -7,16 +7,32 @@ impl Env {
         Self { pos: 0 }
     }
 
+    pub fn state(&self) -> isize {
+        self.pos
+    }
+
     /// Returns observation
     pub fn reset(&mut self) -> isize {
         self.pos = 0;
         0
     }
 
-    /// Returns next obs, reward,
-    pub fn step(&mut self, action: isize) -> (isize, f32) {
-        self.pos += action;
-        let reward = if self.pos == 3 { 1. } else { 0. };
-        (self.pos, reward)
+    /// Returns next obs, reward, done
+    pub fn step(&mut self, action: usize) -> (isize, f32, bool) {
+        match action {
+            0 => self.pos -= 1,
+            1 => self.pos += 1,
+            _ => panic!(),
+        }
+        let mut reward = 0.;
+        let mut done = false;
+        if self.pos == 3 {
+            reward = 1.;
+            done = true;
+        } else if self.pos == -3 {
+            reward = -1.;
+            done = true;
+        }
+        (self.pos, reward, done)
     }
 }
