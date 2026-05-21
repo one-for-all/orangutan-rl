@@ -22,7 +22,6 @@ fn computation<B: Backend>() {
 
 fn main() {
     let mut env = Env::new();
-    let mut agent = Agent::new();
     // let mut optimizer = AdamWConfig::new().init();
 
     let next_obs = env.reset();
@@ -40,6 +39,8 @@ fn main() {
 
     type MyBackend = Wgpu<f32, i32>;
     type MyAutodiffBackend = Autodiff<MyBackend>;
+
+    let mut agent = Agent::<MyBackend>::new();
 
     let device = burn::backend::wgpu::WgpuDevice::default();
     let artifact_dir = "/tmp/guide";

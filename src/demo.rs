@@ -1,9 +1,13 @@
-use orangutan_rl::{agent::Agent, env::Env};
+use burn::backend::{Autodiff, Wgpu};
+use orangutan_rl::{agent::Agent, env::Env, run::run};
+
+type Backend = Autodiff<Wgpu<f32, i32>>;
 
 fn main() {
     let mut env = Env::new();
     let mut state = env.state();
-    let mut agent = Agent::new();
+
+    let mut agent = run::<Backend>();
     let mut done = false;
     while !done {
         let action = agent.react(&state);

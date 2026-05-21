@@ -26,10 +26,10 @@ impl Env {
         }
         let mut reward = 0.;
         let mut done = false;
-        if self.pos == 3 {
+        if self.pos == 1 {
             reward = 1.;
             done = true;
-        } else if self.pos == -3 {
+        } else if self.pos == -1 {
             reward = -1.;
             done = true;
         }
