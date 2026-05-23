@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 burn = { version = "0.21.0", features = ["wgpu", "train", "vision"] }
+plotters = "0.3.7"
 rand = "0.10.1"
 ringbuffer = "0.16.0"
 
@@ -24,3 +25,8 @@ path = "src/test.rs"
 [[bin]]
 name = "demo"
 path = "src/demo.rs"
+
+
+[[bin]]
+name = "policy_gradient"
+path = "src/policy_gradient.rs"
