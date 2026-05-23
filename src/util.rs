@@ -1,6 +1,5 @@
 use burn::{
     Tensor,
-    module::AutodiffModule,
     optim::{GradientsParams, LearningRate, Optimizer},
     prelude::Backend,
     tensor::{Int, backend::AutodiffBackend},

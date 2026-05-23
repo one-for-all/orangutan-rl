@@ -6,7 +6,7 @@ use crate::{
     agent::Agent,
     env::Env,
     memory::Memory,
-    ppo::{self, PPOModel, react_with_model, train},
+    ppo::{PPOModel, react_with_model, train},
 };
 
 pub fn run<B: AutodiffBackend>() -> Agent<B> {

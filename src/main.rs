@@ -1,9 +1,8 @@
 use burn::{
     Tensor,
     backend::{Autodiff, Wgpu},
-    optim::{AdamConfig, AdamWConfig},
+    optim::AdamConfig,
     prelude::Backend,
-    tensor::backend::AutodiffBackend,
 };
 use orangutan_rl::{
     agent::Agent,
@@ -24,7 +23,7 @@ fn main() {
     let mut env = Env::new();
     // let mut optimizer = AdamWConfig::new().init();
 
-    let next_obs = env.reset();
+    let _next_obs = env.reset();
 
     // for episode in 0..5 {
     //     let mut episode_done = false;
@@ -40,7 +39,7 @@ fn main() {
     type MyBackend = Wgpu<f32, i32>;
     type MyAutodiffBackend = Autodiff<MyBackend>;
 
-    let mut agent = Agent::<MyBackend>::new();
+    let _agent = Agent::<MyBackend>::new();
 
     let device = burn::backend::wgpu::WgpuDevice::default();
     let artifact_dir = "/tmp/guide";

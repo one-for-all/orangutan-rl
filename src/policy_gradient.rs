@@ -1,10 +1,9 @@
 use burn::{
     Tensor,
     backend::{Autodiff, Wgpu},
-    module::Module,
     optim::{AdamConfig, GradientsParams, Optimizer},
     prelude::Backend,
-    tensor::{Distribution, ElementConversion, backend::AutodiffBackend},
+    tensor::{ElementConversion, backend::AutodiffBackend},
 };
 use orangutan_rl::{
     plot::plot,

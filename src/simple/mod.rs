@@ -1,13 +1,11 @@
-use std::hash::DefaultHasher;
 
 use burn::{
     Tensor,
     module::Module,
     nn::{Linear, LinearConfig, Tanh},
     prelude::Backend,
-    tensor::{Distribution, Shape, activation::log_softmax},
+    tensor::{Distribution, activation::log_softmax},
 };
-use rand::distr::Uniform;
 
 #[derive(Module, Debug)]
 pub struct SimpleLogitsNet<B: Backend> {

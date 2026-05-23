@@ -1,6 +1,6 @@
 use burn::{
     Tensor,
-    config::{self, Config},
+    config::Config,
     module::Module,
     nn::{
         Dropout, DropoutConfig, Linear, LinearConfig, Relu,

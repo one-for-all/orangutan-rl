@@ -19,7 +19,6 @@ use rand::{
 
 use crate::{
     memory::{Memory, get_batch, sample_indices},
-    model::Model,
     util::{
         elementwise_min, get_elem, ref_to_action_tensor, ref_to_not_done_tensor,
         ref_to_reward_tensor, ref_to_state_tensor, update_parameters,

@@ -1,5 +1,5 @@
 use burn::backend::{Autodiff, Wgpu};
-use orangutan_rl::{agent::Agent, env::Env, run::run};
+use orangutan_rl::{env::Env, run::run};
 
 type Backend = Autodiff<Wgpu<f32, i32>>;
 

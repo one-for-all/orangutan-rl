@@ -16,7 +16,7 @@ impl<B: Backend> Agent<B> {
         }
     }
 
-    pub fn get_action_and_value(&self, obs: isize) -> (isize, f32, f32) {
+    pub fn get_action_and_value(&self, _obs: isize) -> (isize, f32, f32) {
         (1, 0., 0.)
     }
 
