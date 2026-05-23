@@ -42,16 +42,16 @@ impl SimpleEnv {
     }
 
     pub fn step(&mut self, action: i32) -> (f32, f32, bool) {
-        let reward;
+        let mut reward = -1.;
         let mut done = false;
         match action {
-            0 => {
-                reward = -1.;
-            }
+            0 => {}
             1 => {
                 self.x += 1.;
-                reward = 10.;
-                done = true;
+                if self.x == 3. {
+                    reward = 10.;
+                    done = true;
+                }
             }
             _ => panic!("unknown action: {action}"),
         }
@@ -88,7 +88,10 @@ fn main() {
         (logits_net, ret) = train_one_epoch(&mut env, logits_net, &mut optimizer);
         data.push(ret);
 
-        let policy = get_policy(&logits_net, Tensor::from_data([[0.]], &Default::default()));
+        let policy = get_policy(
+            &logits_net,
+            Tensor::from_data([[0.], [1.], [2.]], &Default::default()),
+        );
         println!("action probs: {}", policy.probs().into_data());
     }
 
@@ -146,7 +149,7 @@ fn train_one_epoch<B: AutodiffBackend>(
         batch_acts.push(act);
         ep_rews.push(rew);
 
-        println!("obs: {obs}, action: {act}, reward: {rew}, done: {done}");
+        // println!("obs: {obs}, action: {act}, reward: {rew}, done: {done}");
         obs = next_obs;
 
         if done {
