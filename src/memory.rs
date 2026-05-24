@@ -35,11 +35,11 @@ impl<const CAP: usize> Memory<CAP> {
         reward: f32,
         done: bool,
     ) {
-        self.state.push(state);
-        self.next_state.push(next_state);
-        self.action.push(action);
-        self.reward.push(reward);
-        self.done.push(done);
+        self.state.enqueue(state);
+        self.next_state.enqueue(next_state);
+        self.action.enqueue(action);
+        self.reward.enqueue(reward);
+        self.done.enqueue(done);
     }
 
     pub fn clear(&mut self) {
