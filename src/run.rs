@@ -4,13 +4,13 @@ use burn::{
 
 use crate::{
     agent::Agent,
-    env::Env,
+    env::toy::ToyEnv,
     memory::Memory,
     ppo::{PPOModel, react_with_model, train},
 };
 
 pub fn run<B: AutodiffBackend>() -> Agent<B> {
-    let mut env = Env::new();
+    let mut env = ToyEnv::new();
 
     let mut ppo_model = PPOModel::<B>::new(1, 4, 2);
     let mut agent = Agent::new();

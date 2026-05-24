@@ -6,9 +6,10 @@ use burn::{
     tensor::{ElementConversion, backend::AutodiffBackend},
 };
 use orangutan_rl::{
-    env::grid::OneDimGridEnv,
+    env::{dynamic::DoubleIntegratorEnv, grid::OneDimGridEnv},
     plot::plot,
     simple::{Categorical, SimpleLogitsNet},
+    util::vec2d_to_tensor,
 };
 
 const BATCH_SIZE: usize = 20;
@@ -19,7 +20,8 @@ type MyBackend = Autodiff<Wgpu>;
 fn main() {
     MyBackend::seed(&Default::default(), 0);
 
-    let mut env = OneDimGridEnv::new();
+    // let mut env = OneDimGridEnv::new();
+    let mut env = DoubleIntegratorEnv::new();
 
     let obs_dim = env.obs_dim();
     let n_acts = env.n_acts();
@@ -39,7 +41,7 @@ fn main() {
 
         let policy = get_policy(
             &logits_net,
-            Tensor::from_data([[0.], [1.], [2.]], &Default::default()),
+            Tensor::from_data([[0., 0.], [1., 0.]], &Default::default()),
         );
         println!("action probs: {}", policy.probs().into_data());
     }
@@ -74,7 +76,7 @@ fn compute_loss<B: Backend>(
 }
 
 fn train_one_epoch<B: AutodiffBackend>(
-    env: &mut OneDimGridEnv,
+    env: &mut DoubleIntegratorEnv,
     logits_net: SimpleLogitsNet<B>,
     optimizer: &mut impl Optimizer<SimpleLogitsNet<B>, B>,
 ) -> (SimpleLogitsNet<B>, f32) {
@@ -89,9 +91,10 @@ fn train_one_epoch<B: AutodiffBackend>(
     let mut ep_rews = vec![];
 
     loop {
-        batch_obs.push(obs);
+        batch_obs.push(obs.clone());
 
-        let act = get_action(&logits_net, Tensor::from_data([[obs]], &Default::default()));
+        let obs_tensor = vec2d_to_tensor(vec![obs], &Default::default());
+        let act = get_action(&logits_net, obs_tensor);
         let (next_obs, rew, next_done) = env.step(act);
         done = next_done;
 
@@ -118,16 +121,11 @@ fn train_one_epoch<B: AutodiffBackend>(
         }
     }
 
-    let obs_tensor = Tensor::<B, 1>::from_data(batch_obs.as_slice(), &Default::default());
+    let obs_tensor = vec2d_to_tensor(batch_obs, &Default::default());
     let acts_tensor = Tensor::from_data(batch_acts.as_slice(), &Default::default());
     let weights_tensor = Tensor::<B, 1>::from_data(batch_weights.as_slice(), &Default::default());
 
-    let loss = compute_loss(
-        &logits_net,
-        obs_tensor.reshape([batch_obs.len(), 1]),
-        acts_tensor,
-        weights_tensor,
-    );
+    let loss = compute_loss(&logits_net, obs_tensor, acts_tensor, weights_tensor);
 
     let gradients = loss.backward();
     let gradient_params = GradientsParams::from_grads(gradients, &logits_net);

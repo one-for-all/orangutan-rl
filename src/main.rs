@@ -4,13 +4,13 @@ use burn::{
 };
 use orangutan_rl::{
     agent::Agent,
-    env::Env,
+    env::toy::ToyEnv,
     model::ModelConfig,
     training::{self, TrainingConfig},
 };
 
 fn main() {
-    let mut env = Env::new();
+    let mut env = ToyEnv::new();
     // let mut optimizer = AdamWConfig::new().init();
 
     let _next_obs = env.reset();

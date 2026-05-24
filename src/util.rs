@@ -60,3 +60,18 @@ pub(crate) fn update_parameters<B: AutodiffBackend>(
     let gradient_params = GradientsParams::from_grads(gradients, &module);
     optimizer.step(learning_rate, module, gradient_params)
 }
+
+pub fn vec2d_to_tensor<B: Backend>(data: Vec<Vec<f32>>, device: &B::Device) -> Tensor<B, 2> {
+    let rows = data.len();
+    let cols = data[0].len();
+
+    // Validate all rows have the same length
+    assert!(
+        data.iter().all(|r| r.len() == cols),
+        "All rows must have equal length"
+    );
+
+    let flat: Vec<f32> = data.into_iter().flatten().collect();
+
+    Tensor::<B, 1>::from_data(flat.as_slice(), device).reshape([rows, cols])
+}

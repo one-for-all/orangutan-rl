@@ -1,10 +1,10 @@
 use burn::backend::{Autodiff, Wgpu};
-use orangutan_rl::{env::Env, run::run};
+use orangutan_rl::{env::toy::ToyEnv, run::run};
 
 type Backend = Autodiff<Wgpu<f32, i32>>;
 
 fn main() {
-    let mut env = Env::new();
+    let mut env = ToyEnv::new();
     let mut state = env.state();
 
     let mut agent = run::<Backend>();
