@@ -12,8 +12,8 @@ use orangutan_rl::{
     util::vec2d_to_tensor,
 };
 
-const BATCH_SIZE: usize = 20;
-const EPOCHS: usize = 1000;
+const BATCH_SIZE: usize = 50;
+const EPOCHS: usize = 2000;
 
 // type MyBackend = Autodiff<Wgpu>;
 type MyBackend = Autodiff<NdArray>;

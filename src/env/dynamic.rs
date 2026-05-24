@@ -18,7 +18,7 @@ impl DoubleIntegratorEnv {
         Self {
             x: 0.,
             v: 0.,
-            dt: 0.2,
+            dt: 0.5,
             t: 0.,
         }
     }

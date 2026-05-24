@@ -1,4 +1,3 @@
-
 use burn::{
     Tensor,
     module::Module,
