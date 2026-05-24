@@ -44,7 +44,13 @@ fn main() {
             &logits_net,
             Tensor::from_data([[0., 0.], [1., 0.]], &Default::default()),
         );
-        println!("action probs: {}", policy.probs().into_data());
+        let action_probs_formatted: Vec<String> = policy
+            .probs()
+            .into_data()
+            .iter()
+            .map(|f: f32| format!("{:.2}", f))
+            .collect();
+        println!("action probs: {:?}", action_probs_formatted);
     }
 
     // Roll out a policy
@@ -53,10 +59,10 @@ fn main() {
     let mut obs = env.reset(true);
     data2.push(obs[0]);
     let mut ret = 0.;
-    loop {
+    while env.t < 10. {
         let obs_tensor = vec2d_to_tensor(vec![obs.clone()], &Default::default());
         let act = get_action(&logits_net, obs_tensor);
-        let (next_obs, rew, done) = env.step(act);
+        let (next_obs, rew, _done) = env.step(act);
 
         ret += rew;
         let obs_formatted: Vec<String> = obs.iter().map(|f| format!("{:.2}", f)).collect();
@@ -64,12 +70,8 @@ fn main() {
 
         obs = next_obs;
         data2.push(obs[0]);
-
-        if done {
-            println!("total return: {ret}");
-            break;
-        }
     }
+    println!("total return: {ret}");
 
     plot(&data, 1.0, "simple RL");
     plot(&data2, env.dt, "double integrator trajectory");

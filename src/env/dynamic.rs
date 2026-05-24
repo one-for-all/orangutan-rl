@@ -8,7 +8,7 @@ use rand::{RngExt, rng};
 pub struct DoubleIntegratorEnv {
     x: f32,
     v: f32,
-    t: f32, // current time
+    pub t: f32, // current time
 
     pub dt: f32,
 }
