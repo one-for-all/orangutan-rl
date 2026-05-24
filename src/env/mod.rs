@@ -1,3 +1,5 @@
+pub mod grid;
+
 pub struct Env {
     pub pos: isize,
 }
