@@ -110,7 +110,7 @@ fn train_one_epoch<B: AutodiffBackend>(
             batch_rets.push(ep_ret);
             batch_lens.push(ep_len);
 
-            batch_weights.extend(vec![ep_ret; ep_len]);
+            batch_weights.extend(reward_to_go(&ep_rews));
 
             obs = env.reset();
             ep_rews.clear();
@@ -135,4 +135,17 @@ fn train_one_epoch<B: AutodiffBackend>(
         optimized_logits_net,
         batch_rets.iter().sum::<f32>() / batch_rets.len() as f32,
     )
+}
+
+/// Compute the reward to go, i.e. the sum of rewards after the action, for each action
+/// rewards is the list of rewards after each action
+fn reward_to_go(rewards: &Vec<f32>) -> Vec<f32> {
+    let n = rewards.len();
+    let mut rtgs = vec![0.; n];
+
+    rtgs[n - 1] = rewards[n - 1];
+    for i in (0..n - 1).rev() {
+        rtgs[i] = rewards[i] + rtgs[i + 1];
+    }
+    rtgs
 }
