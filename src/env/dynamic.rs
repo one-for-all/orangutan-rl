@@ -75,6 +75,22 @@ impl DoubleIntegratorEnv {
         let obs = vec![self.x, self.v];
         assert_eq!(obs.len(), self.obs_dim());
         let done = self.t >= 3.0;
+
+        // Add the infinite discounted sum of future rewards assuming constant velocity
+        // Note: not good, because this means any non-zero velocity will cause large cost. So the policy learns to prefer zero action at the beginning.
+        // if done {
+        //     reward = -infinite_sum(self.v, self.x - x_goal, 0.99, self.dt);
+        // }
+
         return (obs, reward, done);
     }
+}
+
+/// Sum over t from 0 to infinity of (alpha * t + beta)^2 * gamma^t * dt
+fn infinite_sum(alpha: f32, beta: f32, gamma: f32, dt: f32) -> f32 {
+    let numerator = alpha * alpha * gamma * (1. + gamma)
+        + 2. * alpha * beta * gamma * (1. - gamma)
+        + beta * beta * (1. - gamma).powi(2);
+    let denominator = (1. - gamma).powi(3);
+    numerator / denominator * dt
 }
