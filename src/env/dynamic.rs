@@ -8,7 +8,7 @@ pub struct DoubleIntegratorEnv {
     v: f32,
     t: f32, // current time
 
-    dt: f32,
+    pub dt: f32,
 }
 
 impl DoubleIntegratorEnv {
@@ -65,7 +65,7 @@ impl DoubleIntegratorEnv {
 
         let obs = vec![self.x, self.v];
         assert_eq!(obs.len(), self.obs_dim());
-        let done = self.t >= 2.0;
+        let done = self.t >= 3.0;
         return (obs, reward, done);
     }
 }

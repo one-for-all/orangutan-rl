@@ -13,7 +13,7 @@ use orangutan_rl::{
 };
 
 const BATCH_SIZE: usize = 20;
-const EPOCHS: usize = 50;
+const EPOCHS: usize = 1000;
 
 type MyBackend = Autodiff<Wgpu>;
 
@@ -46,7 +46,32 @@ fn main() {
         println!("action probs: {}", policy.probs().into_data());
     }
 
+    // Roll out a policy
+    println!("======= Policy Rollout");
+    let mut data2 = vec![];
+    let mut obs = env.reset();
+    data2.push(obs[0]);
+    let mut ret = 0.;
+    loop {
+        let obs_tensor = vec2d_to_tensor(vec![obs.clone()], &Default::default());
+        let act = get_action(&logits_net, obs_tensor);
+        let (next_obs, rew, done) = env.step(act);
+
+        ret += rew;
+        let obs_formatted: Vec<String> = obs.iter().map(|f| format!("{:.2}", f)).collect();
+        println!("obs: {:?}, action: {}, reward: {}", obs_formatted, act, rew);
+
+        obs = next_obs;
+        data2.push(obs[0]);
+
+        if done {
+            println!("total return: {ret}");
+            break;
+        }
+    }
+
     plot(&data, 1.0, "simple RL");
+    plot(&data2, env.dt, "double integrator trajectory");
 
     // println!("======= Summary");
     // let policy = get_policy(&logits_net, Tensor::from_data([[0.]], &Default::default()));
@@ -143,9 +168,11 @@ fn reward_to_go(rewards: &Vec<f32>) -> Vec<f32> {
     let n = rewards.len();
     let mut rtgs = vec![0.; n];
 
+    let gamma = 0.99; // discount factor
+
     rtgs[n - 1] = rewards[n - 1];
     for i in (0..n - 1).rev() {
-        rtgs[i] = rewards[i] + rtgs[i + 1];
+        rtgs[i] = rewards[i] + gamma * rtgs[i + 1];
     }
     rtgs
 }
