@@ -1,3 +1,5 @@
+use rand::{RngExt, rng};
+
 /// A point mass on a frictionless surface.
 /// Control input is the acceleration, and goal is to reach and stay at position 1.
 /// mathematically: d^2q/dt = u; |u| <= 1
@@ -34,9 +36,16 @@ impl DoubleIntegratorEnv {
         3
     }
 
-    pub fn reset(&mut self) -> Vec<f32> {
-        self.x = 0.;
-        self.v = 0.;
+    pub fn reset(&mut self, zero: bool) -> Vec<f32> {
+        if zero {
+            self.x = 0.;
+            self.v = 0.;
+        } else {
+            let mut rng = rng();
+            self.x = rng.random_range(-2.0..2.0);
+            self.v = rng.random_range(-2.0..2.0);
+        }
+
         self.t = 0.;
 
         let obs = vec![self.x, self.v];

@@ -1,6 +1,6 @@
 use burn::{
     Tensor,
-    backend::{Autodiff, Wgpu},
+    backend::{Autodiff, NdArray, Wgpu},
     optim::{AdamConfig, GradientsParams, Optimizer},
     prelude::Backend,
     tensor::{ElementConversion, backend::AutodiffBackend},
@@ -15,7 +15,8 @@ use orangutan_rl::{
 const BATCH_SIZE: usize = 20;
 const EPOCHS: usize = 1000;
 
-type MyBackend = Autodiff<Wgpu>;
+// type MyBackend = Autodiff<Wgpu>;
+type MyBackend = Autodiff<NdArray>;
 
 fn main() {
     MyBackend::seed(&Default::default(), 0);
@@ -49,7 +50,7 @@ fn main() {
     // Roll out a policy
     println!("======= Policy Rollout");
     let mut data2 = vec![];
-    let mut obs = env.reset();
+    let mut obs = env.reset(true);
     data2.push(obs[0]);
     let mut ret = 0.;
     loop {
@@ -111,7 +112,7 @@ fn train_one_epoch<B: AutodiffBackend>(
     let mut batch_rets = vec![];
     let mut batch_lens = vec![];
 
-    let mut obs = env.reset();
+    let mut obs = env.reset(true);
     let mut done;
     let mut ep_rews = vec![];
 
@@ -137,7 +138,7 @@ fn train_one_epoch<B: AutodiffBackend>(
 
             batch_weights.extend(reward_to_go(&ep_rews));
 
-            obs = env.reset();
+            obs = env.reset(true);
             ep_rews.clear();
 
             if batch_obs.len() >= BATCH_SIZE {
