@@ -75,3 +75,31 @@ pub fn vec2d_to_tensor<B: Backend>(data: Vec<Vec<f32>>, device: &B::Device) -> T
 
     Tensor::<B, 1>::from_data(flat.as_slice(), device).reshape([rows, cols])
 }
+
+///Discounted cumulative sums
+// input:
+//     vector x,
+//     [x0,
+//      x1,
+//      x2]
+//
+// output:
+//     [x0 + discount * x1 + discount^2 * x2,
+//      x1 + discount * x2,
+//      x2]
+pub fn discount_cumsum(x: &Vec<f32>, discount: f32) -> Vec<f32> {
+    let n = x.len();
+    let mut result = vec![0.0; n];
+    let mut running = 0.0;
+    for i in (0..n).rev() {
+        running = x[i] + discount * running;
+        result[i] = running;
+    }
+    result
+}
+
+pub fn mean_and_std(data: &[f32]) -> (f32, f32) {
+    let mean = data.iter().sum::<f32>() / data.len() as f32;
+    let variance = data.iter().map(|x| (x - mean).powi(2)).sum::<f32>() / data.len() as f32;
+    (mean, variance.sqrt())
+}

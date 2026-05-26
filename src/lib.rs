@@ -1,4 +1,5 @@
 pub mod agent;
+pub mod buffer;
 pub mod data;
 pub mod env;
 pub mod inference;

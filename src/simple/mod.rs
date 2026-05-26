@@ -6,6 +6,8 @@ use burn::{
     tensor::{Distribution, activation::log_softmax},
 };
 
+pub mod actor_critic;
+
 #[derive(Module, Debug)]
 pub struct SimpleLogitsNet<B: Backend> {
     obs_layer: Linear<B>,
