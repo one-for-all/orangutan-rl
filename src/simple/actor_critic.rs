@@ -1,7 +1,7 @@
 use burn::{
     Tensor,
     module::Module,
-    nn::{Linear, LinearConfig, Tanh},
+    nn::{Linear, LinearConfig, Relu, Tanh},
     prelude::Backend,
     tensor::{ElementConversion, Int, activation},
 };

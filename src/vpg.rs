@@ -14,12 +14,12 @@ use orangutan_rl::{
 };
 
 const BATCH_SIZE: usize = 50;
-const EPOCHS: usize = 500;
+const EPOCHS: usize = 2000;
 
 // type MyBackend = Autodiff<Wgpu>;
 type MyBackend = Autodiff<NdArray>;
 
-const STEPS_PER_EPOCH: usize = 40; // 4000
+const STEPS_PER_EPOCH: usize = 50; // 4000
 const MAX_EP_LEN: usize = 10; // 1000
 const GAMMA: f32 = 0.99; // Discount factor
 const LAM: f32 = 0.97; // Lambda for GAE-Lambda
@@ -81,18 +81,18 @@ fn main() {
                 let last_v;
                 if timeout || epoch_ended {
                     last_v =
-                        ac.v.forward(vec2d_to_tensor(vec![o], &Default::default()))
+                        ac.v.forward(vec2d_to_tensor(vec![o.clone()], &Default::default()))
                             .into_scalar()
                             .elem();
                 } else {
                     last_v = 0.;
                 }
                 buf.finish_path(last_v);
-                o = env.reset(true);
                 if terminal {
                     // println!("episode return: {}", ep_ret);
                     data.push(ep_ret);
                 }
+                o = env.reset(false);
                 ep_ret = 0.;
                 ep_len = 0;
             }
@@ -175,68 +175,6 @@ fn compute_loss<B: Backend>(
 ) -> Tensor<B, 1> {
     let logp = get_policy(logits_net, obs).log_prob(acts);
     -(logp * weights).mean()
-}
-
-fn train_one_epoch<B: AutodiffBackend>(
-    env: &mut DoubleIntegratorEnv,
-    logits_net: SimpleLogitsNet<B>,
-    optimizer: &mut impl Optimizer<SimpleLogitsNet<B>, B>,
-) -> (SimpleLogitsNet<B>, f32) {
-    let mut batch_obs = vec![];
-    let mut batch_acts = vec![];
-    let mut batch_weights = vec![];
-    let mut batch_rets = vec![];
-    let mut batch_lens = vec![];
-
-    let mut obs = env.reset(true);
-    let mut done;
-    let mut ep_rews = vec![];
-
-    loop {
-        batch_obs.push(obs.clone());
-
-        let obs_tensor = vec2d_to_tensor(vec![obs], &Default::default());
-        let act = get_action(&logits_net, obs_tensor);
-        let (next_obs, rew, next_done) = env.step(act);
-        done = next_done;
-
-        batch_acts.push(act);
-        ep_rews.push(rew);
-
-        // println!("obs: {obs}, action: {act}, reward: {rew}, done: {done}");
-        obs = next_obs;
-
-        if done {
-            let ep_ret: f32 = ep_rews.iter().sum();
-            let ep_len = ep_rews.len();
-            batch_rets.push(ep_ret);
-            batch_lens.push(ep_len);
-
-            batch_weights.extend(reward_to_go(&ep_rews));
-
-            obs = env.reset(true);
-            ep_rews.clear();
-
-            if batch_obs.len() >= BATCH_SIZE {
-                break;
-            }
-        }
-    }
-
-    let obs_tensor = vec2d_to_tensor(batch_obs, &Default::default());
-    let acts_tensor = Tensor::from_data(batch_acts.as_slice(), &Default::default());
-    let weights_tensor = Tensor::<B, 1>::from_data(batch_weights.as_slice(), &Default::default());
-
-    let loss = compute_loss(&logits_net, obs_tensor, acts_tensor, weights_tensor);
-
-    let gradients = loss.backward();
-    let gradient_params = GradientsParams::from_grads(gradients, &logits_net);
-    let optimized_logits_net = optimizer.step(1e-2, logits_net, gradient_params);
-
-    (
-        optimized_logits_net,
-        batch_rets.iter().sum::<f32>() / batch_rets.len() as f32,
-    )
 }
 
 /// Compute the reward to go, i.e. the sum of rewards after the action, for each action

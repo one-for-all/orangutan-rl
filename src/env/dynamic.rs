@@ -42,8 +42,14 @@ impl DoubleIntegratorEnv {
             self.v = 0.;
         } else {
             let mut rng = rng();
-            self.x = rng.random_range(-2.0..2.0);
-            self.v = rng.random_range(-2.0..2.0);
+            if rng.random_bool(0.5) {
+                self.x = 0.;
+            } else {
+                self.x = 1.;
+            }
+            self.v = 0.;
+            // self.x = rng.random_range(-2.0..2.0);
+            // self.v = rng.random_range(-2.0..2.0);
         }
 
         self.t = 0.;
@@ -74,7 +80,7 @@ impl DoubleIntegratorEnv {
 
         let obs = vec![self.x, self.v];
         assert_eq!(obs.len(), self.obs_dim());
-        let done = self.t >= 3.0;
+        let done = false;
 
         // Add the infinite discounted sum of future rewards assuming constant velocity
         // Note: not good, because this means any non-zero velocity will cause large cost. So the policy learns to prefer zero action at the beginning.
