@@ -3,7 +3,7 @@
 /// mathematically: d^2q/dt = u; |u| <= 1
 /// For simplicity, action is assumed to be either +-1 or 0
 /// Ref: https://underactuated.csail.mit.edu/dp.html#example1
-pub struct DoubleIntegratorEnv {
+pub struct DiscreteDoubleIntegratorEnv {
     x: f32,
     v: f32,
     pub t: f32, // current time
@@ -11,7 +11,7 @@ pub struct DoubleIntegratorEnv {
     pub dt: f32,
 }
 
-impl DoubleIntegratorEnv {
+impl DiscreteDoubleIntegratorEnv {
     pub fn new() -> Self {
         Self {
             x: 0.,

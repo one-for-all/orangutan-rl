@@ -1,4 +1,4 @@
-pub mod dynamic;
+pub mod double_integrator;
 pub mod grid;
 pub mod toy;
 

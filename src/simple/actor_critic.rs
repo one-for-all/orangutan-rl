@@ -8,12 +8,12 @@ use burn::{
 
 use crate::simple::Categorical;
 
-pub struct MLPActorCritic<B: Backend> {
+pub struct MLPActorCriticDiscrete<B: Backend> {
     pub pi: MLPCategoricalActor<B>,
     pub v: MLPCritic<B>,
 }
 
-impl<B: Backend> MLPActorCritic<B> {
+impl<B: Backend> MLPActorCriticDiscrete<B> {
     pub fn new(obs_dim: usize, n_acts: usize, hidden_sizes: &Vec<usize>) -> Self {
         let pi = MLPCategoricalActor::new(obs_dim, n_acts, hidden_sizes);
         let v = MLPCritic::new(obs_dim, hidden_sizes);
@@ -95,7 +95,7 @@ impl<B: Backend> MLPCritic<B> {
 }
 
 #[derive(Module, Debug)]
-struct MLP<B: Backend> {
+pub struct MLP<B: Backend> {
     linear_layers: Vec<Linear<B>>,
     activation: Tanh,
 }

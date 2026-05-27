@@ -4,7 +4,10 @@ use burn::{Tensor, prelude::Backend, tensor::Int};
 use itertools::izip;
 
 use crate::{
-    simple::actor_critic::{MLPActorCritic, MLPCategoricalActor, MLPCritic},
+    simple::{
+        actor_critic::{MLPActorCriticDiscrete, MLPCategoricalActor, MLPCritic},
+        actor_critic_continuous::MLPGaussianActor,
+    },
     util::{discount_cumsum, mean_and_std, vec2d_to_tensor},
 };
 
@@ -14,7 +17,7 @@ pub struct VPGBuffer {
     path_start_idx: usize,
 
     obs_buf: Vec<Vec<f32>>,
-    act_buf: Vec<i32>,
+    act_buf: Vec<f32>,
     rew_buf: Vec<f32>,
     val_buf: Vec<f32>,
     logp_buf: Vec<f32>,
@@ -33,7 +36,7 @@ impl VPGBuffer {
             max_size: size,
             path_start_idx: 0,
             obs_buf: vec![vec![]; size],
-            act_buf: vec![0; size],
+            act_buf: vec![0.; size],
             rew_buf: vec![0.; size],
             val_buf: vec![0.; size],
             logp_buf: vec![0.; size],
@@ -44,7 +47,7 @@ impl VPGBuffer {
         }
     }
 
-    pub fn store(&mut self, obs: Vec<f32>, act: i32, rew: f32, val: f32, logp: f32) {
+    pub fn store(&mut self, obs: Vec<f32>, act: f32, rew: f32, val: f32, logp: f32) {
         assert!(self.ptr < self.max_size);
         self.obs_buf[self.ptr] = obs;
         self.act_buf[self.ptr] = act;
@@ -110,4 +113,20 @@ pub fn compute_loss_v<B: Backend>(buf: &VPGBuffer, v: &MLPCritic<B>) -> Tensor<B
     let obs = vec2d_to_tensor::<B>(buf.obs_buf.clone(), &Default::default());
     let ret = Tensor::<B, 1>::from_data(buf.ret_buf.clone().as_slice(), &Default::default());
     (v.forward(obs) - ret).square().mean()
+}
+
+pub fn compute_loss_pi_continuous<B: Backend>(
+    buf: &VPGBuffer,
+    pi: &MLPGaussianActor<B>,
+) -> Tensor<B, 1> {
+    let obs = vec2d_to_tensor::<B>(buf.obs_buf.clone(), &Default::default());
+    let act = Tensor::<B, 1>::from_data(buf.act_buf.clone().as_slice(), &Default::default());
+    let adv = Tensor::<B, 1>::from_data(buf.adv_buf.clone().as_slice(), &Default::default());
+
+    // Policy loss
+    let policy = pi.distribution(obs);
+    let logp = pi.log_prob_from_distribution(&policy, act);
+    let loss_pi = -(logp * adv).mean();
+
+    loss_pi
 }

@@ -3,10 +3,11 @@ use burn::{
     module::Module,
     nn::{Linear, LinearConfig, Tanh},
     prelude::Backend,
-    tensor::{Distribution, activation::log_softmax},
+    tensor::{Distribution, activation::log_softmax, linalg::Norm},
 };
 
 pub mod actor_critic;
+pub mod actor_critic_continuous;
 
 #[derive(Module, Debug)]
 pub struct SimpleLogitsNet<B: Backend> {
@@ -66,5 +67,40 @@ impl<B: Backend> Categorical<B> {
 
     pub fn probs(&self) -> Tensor<B, 2> {
         self.log_probs.clone().exp()
+    }
+}
+/// Normal distribution with given mean and standard deviation
+pub struct Normal<B: Backend> {
+    pub mu: Tensor<B, 1>,
+    pub std: f32,
+}
+
+impl<B: Backend> Normal<B> {
+    pub fn new(mu: Tensor<B, 1>, std: f32) -> Self {
+        Self { mu, std }
+    }
+
+    pub fn sample(&self) -> Tensor<B, 1> {
+        let noise = Tensor::<B, 1>::random(
+            self.mu.shape(),
+            Distribution::Normal(0., self.std as f64),
+            &Default::default(),
+        );
+
+        let result = noise + self.mu.clone();
+        result
+    }
+
+    pub fn log_prob(&self, actions: Tensor<B, 1>) -> Tensor<B, 1> {
+        let std = self.std;
+        let var = std * std;
+        let log_std = std.ln();
+
+        // -0.5 * ((x - mu)^2 / var) - log_std - 0.5 * ln(2*pi)
+        let diff = actions - self.mu.clone();
+        let exponent = diff.powf_scalar(2.0).div_scalar(var).mul_scalar(-0.5);
+        let constant = log_std + 0.5 * (2. * std::f32::consts::PI).ln();
+
+        exponent.sub_scalar(constant)
     }
 }

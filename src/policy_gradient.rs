@@ -6,7 +6,7 @@ use burn::{
     tensor::{ElementConversion, backend::AutodiffBackend},
 };
 use orangutan_rl::{
-    env::{dynamic::DoubleIntegratorEnv, grid::OneDimGridEnv},
+    env::{double_integrator::discrete::DiscreteDoubleIntegratorEnv, grid::OneDimGridEnv},
     plot::plot,
     simple::{Categorical, SimpleLogitsNet},
     util::vec2d_to_tensor,
@@ -22,7 +22,7 @@ fn main() {
     MyBackend::seed(&Default::default(), 0);
 
     // let mut env = OneDimGridEnv::new();
-    let mut env = DoubleIntegratorEnv::new();
+    let mut env = DiscreteDoubleIntegratorEnv::new();
 
     let obs_dim = env.obs_dim();
     let n_acts = env.n_acts();
@@ -104,7 +104,7 @@ fn compute_loss<B: Backend>(
 }
 
 fn train_one_epoch<B: AutodiffBackend>(
-    env: &mut DoubleIntegratorEnv,
+    env: &mut DiscreteDoubleIntegratorEnv,
     logits_net: SimpleLogitsNet<B>,
     optimizer: &mut impl Optimizer<SimpleLogitsNet<B>, B>,
 ) -> (SimpleLogitsNet<B>, f32) {

@@ -6,18 +6,18 @@ use burn::{
     tensor::ElementConversion,
 };
 use orangutan_rl::{
-    buffer::{VPGBuffer, compute_loss_pi, compute_loss_v},
-    env::double_integrator::discrete::DiscreteDoubleIntegratorEnv,
+    buffer::{VPGBuffer, compute_loss_pi_continuous, compute_loss_v},
+    env::double_integrator::continuous::ContinuousDoubleIntegrator,
     plot::plot,
-    simple::actor_critic::MLPActorCriticDiscrete,
+    simple::{
+        actor_critic::MLPActorCriticDiscrete, actor_critic_continuous::MLPActorCriticContinuous,
+    },
     util::vec2d_to_tensor,
 };
-use rand::{RngExt, SeedableRng, rngs::StdRng};
 
-// type MyBackend = Autodiff<Wgpu>;
 type MyBackend = Autodiff<NdArray>;
 
-const EPOCHS: usize = 1500;
+const EPOCHS: usize = 1000;
 
 const STEPS_PER_EPOCH: usize = 50; // 4000
 const MAX_EP_LEN: usize = 25; // 1000
@@ -31,19 +31,17 @@ const TRAIN_V_ITERS: usize = 80;
 
 fn main() {
     MyBackend::seed(&Default::default(), 0);
-    let mut rng = StdRng::seed_from_u64(1);
 
-    // let mut env = OneDimGridEnv::new();
-    let mut env = DiscreteDoubleIntegratorEnv::new();
+    let mut env = ContinuousDoubleIntegrator::new();
 
     let obs_dim = env.obs_dim();
-    let n_acts = env.n_acts();
+    let act_dim = env.act_dim();
 
     // actor-critic module
-    let mut ac = MLPActorCriticDiscrete::<MyBackend>::new(obs_dim, n_acts, &vec![32, 32]);
+    let mut ac = MLPActorCriticContinuous::<MyBackend>::new(obs_dim, act_dim, &vec![32, 32]);
 
     // Set up experience buffer
-    let mut buf = VPGBuffer::new(obs_dim, n_acts, STEPS_PER_EPOCH, GAMMA, LAM);
+    let mut buf = VPGBuffer::new(obs_dim, act_dim, STEPS_PER_EPOCH, GAMMA, LAM);
 
     let mut pi_optimizer = AdamConfig::new().init();
     let mut vf_optimizer = AdamConfig::new().init();
@@ -55,54 +53,39 @@ fn main() {
     let mut ep_ret = 0.;
     let mut ep_len = 0;
 
-    let mut last_start_origin = true; // wether last episode started from origin
-
     for epoch in 0..EPOCHS {
         println!("====== epoch: {epoch}");
         for t in 0..STEPS_PER_EPOCH {
             let (a, v, logp) = ac.step(vec2d_to_tensor(vec![o.clone()], &Default::default()));
 
-            let (next_o, r, d) = env.step(a);
+            let (next_o, r) = env.step(a);
             ep_ret += r;
             ep_len += 1;
 
             // save to buffer
-            buf.store(o.clone(), a as f32, r, v, logp);
+            buf.store(o.clone(), a, r, v, logp);
 
             // Update obs
             o = next_o;
 
             let timeout = ep_len == MAX_EP_LEN;
-            let terminal = d || timeout;
             let epoch_ended = t == STEPS_PER_EPOCH - 1;
-
-            if terminal || epoch_ended {
-                if epoch_ended && !terminal {
+            if timeout || epoch_ended {
+                if epoch_ended && !timeout {
                     println!("Warning: trajectory cut off by epoch at {} steps.", ep_len);
                 }
                 // if trajectory didn't reach terminal state, bootstrap value target
-                let last_v;
-                if timeout || epoch_ended {
-                    last_v =
-                        ac.v.forward(vec2d_to_tensor(vec![o.clone()], &Default::default()))
-                            .into_scalar()
-                            .elem();
-                } else {
-                    last_v = 0.;
-                }
+                let last_v =
+                    ac.v.forward(vec2d_to_tensor(vec![o.clone()], &Default::default()))
+                        .into_scalar()
+                        .elem();
                 buf.finish_path(last_v);
 
-                if terminal && last_start_origin {
+                if timeout {
                     data.push(ep_ret);
                 }
 
-                o = if rng.random_bool(0.5) {
-                    last_start_origin = false;
-                    env.reset(1.) // reset x to 1
-                } else {
-                    last_start_origin = true;
-                    env.reset(0.) // reset x to 0
-                };
+                o = env.reset(0.); // reset x to 0
                 ep_ret = 0.;
                 ep_len = 0;
             }
@@ -112,7 +95,7 @@ fn main() {
         buf.get();
 
         // Train policy with a single step of gradient descent
-        let loss_pi = compute_loss_pi(&buf, &ac.pi);
+        let loss_pi = compute_loss_pi_continuous(&buf, &ac.pi);
         let gradients = loss_pi.backward();
         let gradient_params = GradientsParams::from_grads(gradients, &ac.pi);
         ac.pi = pi_optimizer.step(PI_LR, ac.pi, gradient_params);
@@ -124,17 +107,22 @@ fn main() {
             ac.v = vf_optimizer.step(VF_LR, ac.v, gradient_params);
         }
 
-        // Print action probabilities
+        // Print mean action
         let policy = ac
             .pi
             .distribution(Tensor::from_data([[0., 0.], [1., 0.]], &Default::default()));
-        let action_probs_formatted: Vec<String> = policy
-            .probs()
+
+        let action_mean_formatted: Vec<String> = policy
+            .mu
             .into_data()
             .iter()
             .map(|f: f32| format!("{:.2}", f))
             .collect();
-        println!("action probs: {:?}", action_probs_formatted);
+
+        println!(
+            "action mean: {:?}, std: {:.2}",
+            action_mean_formatted, policy.std
+        );
     }
 
     // Roll out a policy
@@ -146,7 +134,7 @@ fn main() {
     while env.t < 10. {
         let obs_tensor = vec2d_to_tensor(vec![obs.clone()], &Default::default());
         let act = ac.act(obs_tensor);
-        let (next_obs, rew, _done) = env.step(act);
+        let (next_obs, rew) = env.step(act);
 
         ret += rew;
         let obs_formatted: Vec<String> = obs.iter().map(|f| format!("{:.2}", f)).collect();
@@ -157,6 +145,6 @@ fn main() {
     }
     println!("total return: {ret}");
 
-    plot(&data, 1.0, "VPG");
+    plot(&data, 1.0, "VPG continuous");
     plot(&data2, env.dt, "double integrator trajectory");
 }

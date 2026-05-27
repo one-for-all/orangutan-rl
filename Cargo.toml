@@ -36,3 +36,8 @@ path = "src/policy_gradient.rs"
 [[bin]]
 name = "vpg"
 path = "src/vpg.rs"
+
+
+[[bin]]
+name = "vpg_continuous"
+path = "src/vpg_continuous.rs"
