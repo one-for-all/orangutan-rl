@@ -1,30 +1,29 @@
 use burn::{
     Tensor,
-    backend::{Autodiff, NdArray, Wgpu},
+    backend::{Autodiff, NdArray},
     optim::{AdamConfig, GradientsParams, Optimizer},
     prelude::Backend,
-    tensor::{ElementConversion, backend::AutodiffBackend},
+    tensor::ElementConversion,
 };
 use orangutan_rl::{
     buffer::{VPGBuffer, compute_loss_pi, compute_loss_v},
-    env::{dynamic::DoubleIntegratorEnv, grid::OneDimGridEnv},
+    env::dynamic::DoubleIntegratorEnv,
     plot::plot,
-    simple::{Categorical, SimpleLogitsNet, actor_critic::MLPActorCritic},
+    simple::actor_critic::MLPActorCritic,
     util::vec2d_to_tensor,
 };
 
-const BATCH_SIZE: usize = 50;
 const EPOCHS: usize = 2000;
 
 // type MyBackend = Autodiff<Wgpu>;
 type MyBackend = Autodiff<NdArray>;
 
 const STEPS_PER_EPOCH: usize = 50; // 4000
-const MAX_EP_LEN: usize = 10; // 1000
+const MAX_EP_LEN: usize = 25; // 1000
 const GAMMA: f32 = 0.99; // Discount factor
 const LAM: f32 = 0.97; // Lambda for GAE-Lambda
 
-const PI_LR: f64 = 3e-4; // Policy learning rate
+const PI_LR: f64 = 3e-3; // Policy learning rate
 const VF_LR: f64 = 1e-3; // Value function learning rate
 
 const TRAIN_V_ITERS: usize = 80;
@@ -149,45 +148,4 @@ fn main() {
 
     plot(&data, 1.0, "VPG");
     plot(&data2, env.dt, "double integrator trajectory");
-
-    // println!("======= Summary");
-    // let policy = get_policy(&logits_net, Tensor::from_data([[0.]], &Default::default()));
-    // println!("action probs: {}", policy.probs().into_data());
-}
-
-fn get_policy<B: Backend>(logits_net: &SimpleLogitsNet<B>, obs: Tensor<B, 2>) -> Categorical<B> {
-    let logits = logits_net.forward(obs);
-    Categorical::new(logits)
-}
-
-/// Given a single observation of shape [1, obs_dim], return a single action
-fn get_action<B: Backend>(logits_net: &SimpleLogitsNet<B>, obs: Tensor<B, 2>) -> i32 {
-    assert_eq!(obs.shape()[0], 1);
-    let dist = get_policy(logits_net, obs);
-    dist.sample().into_scalar().elem()
-}
-
-fn compute_loss<B: Backend>(
-    logits_net: &SimpleLogitsNet<B>,
-    obs: Tensor<B, 2>,
-    acts: Tensor<B, 1, burn::tensor::Int>,
-    weights: Tensor<B, 1>,
-) -> Tensor<B, 1> {
-    let logp = get_policy(logits_net, obs).log_prob(acts);
-    -(logp * weights).mean()
-}
-
-/// Compute the reward to go, i.e. the sum of rewards after the action, for each action
-/// rewards is the list of rewards after each action
-fn reward_to_go(rewards: &Vec<f32>) -> Vec<f32> {
-    let n = rewards.len();
-    let mut rtgs = vec![0.; n];
-
-    let gamma = 0.99; // discount factor
-
-    rtgs[n - 1] = rewards[n - 1];
-    for i in (0..n - 1).rev() {
-        rtgs[i] = rewards[i] + gamma * rtgs[i + 1];
-    }
-    rtgs
 }
