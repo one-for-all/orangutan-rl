@@ -56,7 +56,7 @@ fn main() {
     // Roll out a policy
     println!("======= Policy Rollout");
     let mut data2 = vec![];
-    let mut obs = env.reset(true);
+    let mut obs = env.reset(0.);
     data2.push(obs[0]);
     let mut ret = 0.;
     while env.t < 10. {
@@ -114,7 +114,7 @@ fn train_one_epoch<B: AutodiffBackend>(
     let mut batch_rets = vec![];
     let mut batch_lens = vec![];
 
-    let mut obs = env.reset(true);
+    let mut obs = env.reset(0.);
     let mut done;
     let mut ep_rews = vec![];
 
@@ -140,7 +140,7 @@ fn train_one_epoch<B: AutodiffBackend>(
 
             batch_weights.extend(reward_to_go(&ep_rews));
 
-            obs = env.reset(true);
+            obs = env.reset(0.);
             ep_rews.clear();
 
             if batch_obs.len() >= BATCH_SIZE {

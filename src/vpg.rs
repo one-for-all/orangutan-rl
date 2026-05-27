@@ -12,6 +12,7 @@ use orangutan_rl::{
     simple::actor_critic::MLPActorCritic,
     util::vec2d_to_tensor,
 };
+use rand::{RngExt, SeedableRng, rngs::StdRng};
 
 const EPOCHS: usize = 2000;
 
@@ -30,6 +31,7 @@ const TRAIN_V_ITERS: usize = 80;
 
 fn main() {
     MyBackend::seed(&Default::default(), 0);
+    let mut rng = StdRng::seed_from_u64(1);
 
     // let mut env = OneDimGridEnv::new();
     let mut env = DoubleIntegratorEnv::new();
@@ -49,9 +51,11 @@ fn main() {
     let mut data = vec![];
 
     // Prepare for interaction with environment
-    let mut o = env.reset(true);
+    let mut o = env.reset(0.);
     let mut ep_ret = 0.;
     let mut ep_len = 0;
+
+    let mut last_start_origin = true; // wether last episode started from origin
 
     for epoch in 0..EPOCHS {
         println!("====== epoch: {epoch}");
@@ -87,11 +91,18 @@ fn main() {
                     last_v = 0.;
                 }
                 buf.finish_path(last_v);
-                if terminal {
-                    // println!("episode return: {}", ep_ret);
+
+                if terminal && last_start_origin {
                     data.push(ep_ret);
                 }
-                o = env.reset(false);
+
+                o = if rng.random_bool(0.5) {
+                    last_start_origin = false;
+                    env.reset(1.) // reset x to 1
+                } else {
+                    last_start_origin = true;
+                    env.reset(0.) // reset x to 0
+                };
                 ep_ret = 0.;
                 ep_len = 0;
             }
@@ -129,7 +140,7 @@ fn main() {
     // Roll out a policy
     println!("======= Policy Rollout");
     let mut data2 = vec![];
-    let mut obs = env.reset(true);
+    let mut obs = env.reset(0.);
     data2.push(obs[0]);
     let mut ret = 0.;
     while env.t < 10. {
