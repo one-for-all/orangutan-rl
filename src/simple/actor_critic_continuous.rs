@@ -2,11 +2,11 @@ use burn::{
     Tensor,
     module::Module,
     prelude::Backend,
-    tensor::{ElementConversion, Int, linalg::Norm},
+    tensor::ElementConversion,
 };
 
 use crate::simple::{
-    Categorical, Normal,
+    Normal,
     actor_critic::{MLP, MLPCritic},
 };
 

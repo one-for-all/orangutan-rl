@@ -1,9 +1,9 @@
 use burn::{
     Tensor,
     module::Module,
-    nn::{Linear, LinearConfig, Relu, Tanh},
+    nn::{Linear, LinearConfig, Tanh},
     prelude::Backend,
-    tensor::{ElementConversion, Int, activation},
+    tensor::{ElementConversion, Int},
 };
 
 use crate::simple::Categorical;

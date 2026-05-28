@@ -1,11 +1,11 @@
-use std::{any::Any, vec};
+use std::vec;
 
 use burn::{Tensor, prelude::Backend, tensor::Int};
 use itertools::izip;
 
 use crate::{
     simple::{
-        actor_critic::{MLPActorCriticDiscrete, MLPCategoricalActor, MLPCritic},
+        actor_critic::{MLPCategoricalActor, MLPCritic},
         actor_critic_continuous::MLPGaussianActor,
     },
     util::{discount_cumsum, mean_and_std, vec2d_to_tensor},
@@ -30,7 +30,7 @@ pub struct VPGBuffer {
 }
 
 impl VPGBuffer {
-    pub fn new(obs_dim: usize, n_act: usize, size: usize, gamma: f32, lam: f32) -> Self {
+    pub fn new(_obs_dim: usize, _n_act: usize, size: usize, gamma: f32, lam: f32) -> Self {
         Self {
             ptr: 0,
             max_size: size,

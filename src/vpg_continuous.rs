@@ -9,9 +9,7 @@ use orangutan_rl::{
     buffer::{VPGBuffer, compute_loss_pi_continuous, compute_loss_v},
     env::double_integrator::continuous::ContinuousDoubleIntegrator,
     plot::plot,
-    simple::{
-        actor_critic::MLPActorCriticDiscrete, actor_critic_continuous::MLPActorCriticContinuous,
-    },
+    simple::actor_critic_continuous::MLPActorCriticContinuous,
     util::vec2d_to_tensor,
 };
 

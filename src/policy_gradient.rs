@@ -1,12 +1,12 @@
 use burn::{
     Tensor,
-    backend::{Autodiff, NdArray, Wgpu},
+    backend::{Autodiff, NdArray},
     optim::{AdamConfig, GradientsParams, Optimizer},
     prelude::Backend,
     tensor::{ElementConversion, backend::AutodiffBackend},
 };
 use orangutan_rl::{
-    env::{double_integrator::discrete::DiscreteDoubleIntegratorEnv, grid::OneDimGridEnv},
+    env::double_integrator::discrete::DiscreteDoubleIntegratorEnv,
     plot::plot,
     simple::{Categorical, SimpleLogitsNet},
     util::vec2d_to_tensor,

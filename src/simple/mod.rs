@@ -3,7 +3,7 @@ use burn::{
     module::Module,
     nn::{Linear, LinearConfig, Tanh},
     prelude::Backend,
-    tensor::{Distribution, activation::log_softmax, linalg::Norm},
+    tensor::{Distribution, activation::log_softmax},
 };
 
 pub mod actor_critic;
