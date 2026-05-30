@@ -1,5 +1,6 @@
 pub mod double_integrator;
 pub mod grid;
+pub mod pendulum;
 pub mod toy;
 
 pub trait Observation {}

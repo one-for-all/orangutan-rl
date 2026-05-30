@@ -9,6 +9,8 @@ itertools = "0.14.0"
 plotters = "0.3.7"
 rand = "0.10.1"
 ringbuffer = "0.16.0"
+gorilla-physics = { path = "../gorilla-physics/"}
+nalgebra = { version = "0.33"}
 
 [lib]
 name = "orangutan_rl"
@@ -41,3 +43,7 @@ path = "src/vpg.rs"
 [[bin]]
 name = "vpg_continuous"
 path = "src/vpg_continuous.rs"
+
+[[bin]]
+name = "vpg_pendulum"
+path = "src/vpg_pendulum.rs"

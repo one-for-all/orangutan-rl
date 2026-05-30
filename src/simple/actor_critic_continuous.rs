@@ -1,9 +1,4 @@
-use burn::{
-    Tensor,
-    module::Module,
-    prelude::Backend,
-    tensor::ElementConversion,
-};
+use burn::{Tensor, module::Module, prelude::Backend, tensor::ElementConversion};
 
 use crate::simple::{
     Normal,
