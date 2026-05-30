@@ -20,18 +20,17 @@ use std::f32::consts::PI;
 
 type MyBackend = Autodiff<NdArray>;
 
-const EPOCHS: usize = 900 * 2;
+const EPOCHS: usize = 500;
 
-const MAX_EP_LEN: usize = 25 * 3; // 1000
+const MAX_EP_LEN: usize = 25; // 1000
 const STEPS_PER_EPOCH: usize = MAX_EP_LEN * 2; // 4000
 const GAMMA: f32 = 0.99; // Discount factor
 const LAM: f32 = 0.97; // Lambda for GAE-Lambda
 
-const PI_LR: f64 = 3e-3 / 3.0; // Policy learning rate
+const PI_LR: f64 = 3e-3; // Policy learning rate
 const VF_LR: f64 = 1e-3; // Value function learning rate
 
 const TRAIN_V_ITERS: usize = 80;
-
 
 fn main() {
     let HIDDEN_SIZES: Vec<usize> = vec![32, 32];
@@ -57,11 +56,11 @@ fn main() {
     let mut data = vec![];
 
     // Prepare for interaction with environment
-    let mut o = env.reset(PI);
+    let mut o = env.reset(0.);
     let mut ep_ret = 0.;
     let mut ep_len = 0;
 
-    let mut last_start_bottom = true; // wether last episode started from origin
+    let mut last_start_top = true; // wether last episode started from origin
 
     for epoch in 0..EPOCHS {
         println!("====== epoch: {epoch}");
@@ -91,16 +90,16 @@ fn main() {
                         .elem();
                 buf.finish_path(last_v);
 
-                if timeout && last_start_bottom {
+                if timeout && last_start_top {
                     data.push(ep_ret);
                 }
 
-                o = if rng.random_bool(1.0) {
-                    last_start_bottom = true;
-                    env.reset(PI) // reset x to 1
+                o = if rng.random_bool(0.) {
+                    last_start_top = false;
+                    env.reset(PI) // reset pendulum to bottom
                 } else {
-                    last_start_bottom = false;
-                    env.reset(0.) // reset x to 0
+                    last_start_top = true;
+                    env.reset(0.) // reset pendulum to top
                 };
                 ep_ret = 0.;
                 ep_len = 0;
@@ -149,7 +148,7 @@ fn main() {
     // Roll out a policy
     println!("======= Policy Rollout");
     let mut data2 = vec![];
-    let mut obs = env.reset(PI);
+    let mut obs = env.reset(0.);
     data2.push(env.get_state()[0]);
     let mut ret = 0.;
     while env.t < 10. {
