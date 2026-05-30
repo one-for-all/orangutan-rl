@@ -95,7 +95,7 @@ fn main() {
                     data.push(ep_ret);
                 }
 
-                o = if rng.random_bool(0.5) {
+                o = if rng.random_bool(1.0) {
                     last_start_bottom = true;
                     env.reset(PI) // reset x to 1
                 } else {
