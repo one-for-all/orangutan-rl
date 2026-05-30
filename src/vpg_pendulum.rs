@@ -30,7 +30,10 @@ const VF_LR: f64 = 1e-3; // Value function learning rate
 
 const TRAIN_V_ITERS: usize = 80;
 
+
 fn main() {
+    let HIDDEN_SIZES: Vec<usize> = vec![32, 32];
+
     MyBackend::seed(&Default::default(), 0);
 
     let mut env = PendulumEnv::new();
@@ -40,7 +43,7 @@ fn main() {
     assert_eq!(act_dim, 1);
 
     // actor-critic module
-    let mut ac = MLPActorCriticContinuous::<MyBackend>::new(obs_dim, act_dim, &vec![32, 32]);
+    let mut ac = MLPActorCriticContinuous::<MyBackend>::new(obs_dim, act_dim, &HIDDEN_SIZES);
 
     // Set up experience buffer
     let mut buf = VPGBuffer::new(obs_dim, act_dim, STEPS_PER_EPOCH, GAMMA, LAM);
