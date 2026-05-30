@@ -47,3 +47,7 @@ path = "src/vpg_continuous.rs"
 [[bin]]
 name = "vpg_pendulum"
 path = "src/vpg_pendulum.rs"
+
+[[bin]]
+name = "ppo_pendulum"
+path = "src/ppo_pendulum.rs"

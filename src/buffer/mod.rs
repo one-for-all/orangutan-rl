@@ -112,6 +112,7 @@ pub fn compute_loss_pi<B: Backend>(buf: &VPGBuffer, pi: &MLPCategoricalActor<B>)
 pub fn compute_loss_v<B: Backend>(buf: &VPGBuffer, v: &MLPCritic<B>) -> Tensor<B, 1> {
     let obs = vec2d_to_tensor::<B>(buf.obs_buf.clone(), &Default::default());
     let ret = Tensor::<B, 1>::from_data(buf.ret_buf.clone().as_slice(), &Default::default());
+
     (v.forward(obs) - ret).square().mean()
 }
 
@@ -127,6 +128,26 @@ pub fn compute_loss_pi_continuous<B: Backend>(
     let policy = pi.distribution(obs);
     let logp = pi.log_prob_from_distribution(&policy, act);
     let loss_pi = -(logp * adv).mean();
+
+    loss_pi
+}
+
+pub fn compute_loss_pi_ppo<B: Backend>(
+    buf: &VPGBuffer,
+    pi: &MLPGaussianActor<B>,
+    clip_ratio: f32,
+) -> Tensor<B, 1> {
+    let obs = vec2d_to_tensor::<B>(buf.obs_buf.clone(), &Default::default());
+    let act = Tensor::<B, 1>::from_data(buf.act_buf.clone().as_slice(), &Default::default());
+    let adv = Tensor::<B, 1>::from_data(buf.adv_buf.clone().as_slice(), &Default::default());
+    let logp_old = Tensor::<B, 1>::from_data(buf.logp_buf.clone().as_slice(), &Default::default());
+
+    // Policy loss
+    let policy = pi.distribution(obs);
+    let logp = pi.log_prob_from_distribution(&policy, act);
+    let ratio = (logp - logp_old).exp();
+    let clip_adv = ratio.clone().clamp(1. - clip_ratio, 1. + clip_ratio) * adv.clone();
+    let loss_pi = -(clip_adv.min_pair(ratio * adv)).mean();
 
     loss_pi
 }
