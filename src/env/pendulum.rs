@@ -45,7 +45,7 @@ impl PendulumEnv {
             dt: 0.1,
         };
 
-        pendulum.reset();
+        pendulum.reset(0.);
         pendulum
     }
 
@@ -59,9 +59,9 @@ impl PendulumEnv {
         1
     }
 
-    pub fn reset(&mut self) -> Vec<f32> {
+    pub fn reset(&mut self, q: f32) -> Vec<f32> {
         self.state.articulated[0].reset();
-        // self.state.articulated[0].set_joint_q(0, JointPosition::Float(PI));
+        self.state.articulated[0].set_joint_q(0, JointPosition::Float(q as f64));
         // self.state.articulated[0].set_joint_q(0, JointPosition::Float(0.1));
         self.t = 0.;
 
@@ -76,7 +76,7 @@ impl PendulumEnv {
 
     /// Returns (obs, reward)
     pub fn step(&mut self, u: f32) -> (Vec<f32>, f32) {
-        let u = u.clamp(-5., 5.);
+        let u = u.clamp(-2., 2.);
 
         self.state.step(self.dt as Float, &vec![u as Float]);
         let v = self.state.articulated[0].v()[0] as f32;
