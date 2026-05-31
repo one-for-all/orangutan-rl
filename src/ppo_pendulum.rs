@@ -20,20 +20,23 @@ use std::f32::consts::PI;
 
 type MyBackend = Autodiff<NdArray>;
 
-const EPOCHS: usize = 500;
+const EPOCHS: usize = 900 * 2; // 500;
 
-const MAX_EP_LEN: usize = 25; // 1000
+const MAX_EP_LEN: usize = 25 * 3; // 1000
 const STEPS_PER_EPOCH: usize = MAX_EP_LEN * 2; // 4000
 const GAMMA: f32 = 0.99; // Discount factor
 const LAM: f32 = 0.97; // Lambda for GAE-Lambda
 
-const PI_LR: f64 = 3e-3; // Policy learning rate
+const PI_LR: f64 = 3e-3 / 3.0; // Policy learning rate
 const VF_LR: f64 = 1e-3; // Value function learning rate
 
 const TRAIN_PI_ITERS: usize = 80;
 const TRAIN_V_ITERS: usize = 80;
 
 const CLIP_RATIO: f32 = 0.2;
+const TARGET_KL: f32 = 0.01;
+
+const SWINGUP: bool = true;
 
 fn main() {
     let HIDDEN_SIZES: Vec<usize> = vec![32, 32];
@@ -59,7 +62,8 @@ fn main() {
     let mut data = vec![];
 
     // Prepare for interaction with environment
-    let mut o = env.reset(0.);
+    let init_q = if SWINGUP { PI } else { 0. };
+    let mut o = env.reset(init_q);
     let mut ep_ret = 0.;
     let mut ep_len = 0;
 
@@ -93,11 +97,13 @@ fn main() {
                         .elem();
                 buf.finish_path(last_v);
 
-                if timeout && last_start_top {
-                    data.push(ep_ret);
+                if timeout {
+                    if (last_start_top && !SWINGUP) || (!last_start_top && SWINGUP) {
+                        data.push(ep_ret);
+                    }
                 }
 
-                o = if rng.random_bool(0.) {
+                o = if rng.random_bool(1.0) {
                     last_start_top = false;
                     env.reset(PI) // reset pendulum to bottom
                 } else {
@@ -113,8 +119,12 @@ fn main() {
         buf.get();
 
         // Train policy with a single step of gradient descent
-        for _ in 0..TRAIN_PI_ITERS {
-            let loss_pi = compute_loss_pi_ppo(&buf, &ac.pi, CLIP_RATIO);
+        for i in 0..TRAIN_PI_ITERS {
+            let (loss_pi, kl) = compute_loss_pi_ppo(&buf, &ac.pi, CLIP_RATIO);
+            if kl > 1.5 * TARGET_KL {
+                println!("Early stopping at step {} due to reaching max kl", i);
+                break;
+            }
             let gradients = loss_pi.backward();
             let gradient_params = GradientsParams::from_grads(gradients, &ac.pi);
             ac.pi = pi_optimizer.step(PI_LR, ac.pi, gradient_params);
@@ -153,7 +163,7 @@ fn main() {
     // Roll out a policy
     println!("======= Policy Rollout");
     let mut data2 = vec![];
-    let mut obs = env.reset(0.);
+    let mut obs = env.reset(init_q);
     data2.push(env.get_state()[0]);
     let mut ret = 0.;
     while env.t < 10. {

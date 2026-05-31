@@ -1,6 +1,10 @@
 use std::vec;
 
-use burn::{Tensor, prelude::Backend, tensor::Int};
+use burn::{
+    Tensor,
+    prelude::Backend,
+    tensor::{ElementConversion, Int},
+};
 use itertools::izip;
 
 use crate::{
@@ -136,18 +140,25 @@ pub fn compute_loss_pi_ppo<B: Backend>(
     buf: &VPGBuffer,
     pi: &MLPGaussianActor<B>,
     clip_ratio: f32,
-) -> Tensor<B, 1> {
+) -> (Tensor<B, 1>, f32) {
     let obs = vec2d_to_tensor::<B>(buf.obs_buf.clone(), &Default::default());
     let act = Tensor::<B, 1>::from_data(buf.act_buf.clone().as_slice(), &Default::default());
     let adv = Tensor::<B, 1>::from_data(buf.adv_buf.clone().as_slice(), &Default::default());
     let logp_old = Tensor::<B, 1>::from_data(buf.logp_buf.clone().as_slice(), &Default::default());
 
-    // Policy loss
     let policy = pi.distribution(obs);
     let logp = pi.log_prob_from_distribution(&policy, act);
+
+    // KL divergence
+    let approx_kl = (logp_old.clone() - logp.clone())
+        .mean()
+        .into_scalar()
+        .elem();
+
+    // Policy loss
     let ratio = (logp - logp_old).exp();
     let clip_adv = ratio.clone().clamp(1. - clip_ratio, 1. + clip_ratio) * adv.clone();
     let loss_pi = -(clip_adv.min_pair(ratio * adv)).mean();
 
-    loss_pi
+    (loss_pi, approx_kl)
 }
