@@ -20,14 +20,14 @@ use std::f32::consts::PI;
 
 type MyBackend = Autodiff<NdArray>;
 
-const EPOCHS: usize = 900 * 2; // 500;
+const EPOCHS: usize = 500; // 500;
 
-const MAX_EP_LEN: usize = 25 * 3; // 1000
+const MAX_EP_LEN: usize = 60; // 1000
 const STEPS_PER_EPOCH: usize = MAX_EP_LEN * 2; // 4000
 const GAMMA: f32 = 0.99; // Discount factor
 const LAM: f32 = 0.97; // Lambda for GAE-Lambda
 
-const PI_LR: f64 = 3e-3 / 3.0; // Policy learning rate
+const PI_LR: f64 = 3e-4; // Policy learning rate
 const VF_LR: f64 = 1e-3; // Value function learning rate
 
 const TRAIN_PI_ITERS: usize = 80;
