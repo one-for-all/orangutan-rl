@@ -6,11 +6,8 @@ use burn::{
     tensor::ElementConversion,
 };
 use orangutan_rl::{
-    buffer::{VPGBuffer, compute_loss_pi_continuous, compute_loss_pi_ppo, compute_loss_v},
-    env::{
-        double_integrator::continuous::ContinuousDoubleIntegrator,
-        pendulum::{PendulumEnv, pendulum_obs},
-    },
+    buffer::{VPGBuffer, compute_loss_pi_ppo, compute_loss_v},
+    env::pendulum::{PendulumEnv, pendulum_obs},
     plot::plot,
     simple::actor_critic_continuous::MLPActorCriticContinuous,
     util::vec2d_to_tensor,
