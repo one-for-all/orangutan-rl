@@ -10,6 +10,7 @@ pub mod ppo;
 // pub mod run;
 pub mod simple;
 // pub mod training;
+pub mod ppo_controller;
 pub mod util;
 
 #[cfg(not(target_arch = "wasm32"))]

@@ -1,5 +1,6 @@
 #[cfg(any(target_arch = "wasm32", rust_analyzer))]
 use {
+    crate::ppo_controller::PPOPendulumController,
     gorilla_physics::{
         WORLD_FRAME,
         hybrid::{Hybrid, Rigid, articulated::Articulated, control::NullArticulatedController},
@@ -36,7 +37,7 @@ pub async fn createPendulumSwingup() -> InterfaceHybrid {
 
     state.add_articulated(articulated);
 
-    let controller = NullArticulatedController {};
+    let controller = PPOPendulumController::new();
     state.set_controller(0, controller);
 
     InterfaceHybrid::new(state)
