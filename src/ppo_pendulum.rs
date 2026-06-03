@@ -17,7 +17,7 @@ use std::f32::consts::PI;
 
 type MyBackend = Autodiff<NdArray>;
 
-const EPOCHS: usize = 500; // 500;
+const EPOCHS: usize = 800; // 500;
 
 const MAX_EP_LEN: usize = 60; // 1000
 const STEPS_PER_EPOCH: usize = MAX_EP_LEN * 2; // 4000
