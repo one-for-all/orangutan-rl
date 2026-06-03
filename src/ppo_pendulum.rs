@@ -17,7 +17,7 @@ use std::f32::consts::PI;
 
 type MyBackend = Autodiff<NdArray>;
 
-const EPOCHS: usize = 800; // 500;
+const EPOCHS: usize = 500; // 500;
 
 const MAX_EP_LEN: usize = 60; // 1000
 const STEPS_PER_EPOCH: usize = MAX_EP_LEN * 2; // 4000
@@ -64,7 +64,7 @@ fn main() {
     let mut ep_ret = 0.;
     let mut ep_len = 0;
 
-    let mut last_start_top = true; // wether last episode started from origin
+    let mut last_start_top = !SWINGUP; // wether last episode started from origin
 
     for epoch in 0..EPOCHS {
         println!("====== epoch: {epoch}");
@@ -100,7 +100,7 @@ fn main() {
                     }
                 }
 
-                o = if rng.random_bool(1.0) {
+                o = if rng.random_bool(0.5) {
                     last_start_top = false;
                     env.reset(PI) // reset pendulum to bottom
                 } else {

@@ -11,6 +11,7 @@ use gorilla_physics::{
     util::console_log,
 };
 use nalgebra::{DVector, dvector};
+use rand::{RngExt, SeedableRng, rngs::StdRng};
 
 use crate::{
     buffer::{VPGBuffer, compute_loss_pi_ppo, compute_loss_v},
@@ -51,6 +52,9 @@ pub struct PPOPendulumController {
     vf_optimizer: OptimizerAdaptor<Adam, MLPCritic<MyBackend>, MyBackend>,
 
     num_epochs: usize,
+
+    rng: StdRng,
+    last_start_top: bool,
 }
 
 impl PPOPendulumController {
@@ -58,6 +62,7 @@ impl PPOPendulumController {
         let HIDDEN_SIZES: Vec<usize> = vec![32, 32];
 
         MyBackend::seed(&Default::default(), 0);
+        let rng = StdRng::seed_from_u64(1);
 
         let env = PendulumEnv::new();
 
@@ -74,6 +79,8 @@ impl PPOPendulumController {
         let pi_optimizer = AdamConfig::new().init();
         let vf_optimizer = AdamConfig::new().init();
 
+        let last_start_top = false;
+
         Self {
             ac,
             env,
@@ -81,6 +88,8 @@ impl PPOPendulumController {
             pi_optimizer,
             vf_optimizer,
             num_epochs: 0,
+            rng,
+            last_start_top,
         }
     }
 }
@@ -123,9 +132,19 @@ impl ArticulatedController for PPOPendulumController {
                     .elem();
                 self.buf.finish_path(last_v);
 
-                o = self.env.reset(init_q); // reset pendulum
+                if timeout {
+                    if (self.last_start_top && !SWINGUP) || (!self.last_start_top && SWINGUP) {
+                        console_log(&format!("episode return: {:.5}", ep_ret));
+                    }
+                }
 
-                console_log(&format!("episode return: {:.5}", ep_ret));
+                o = if self.rng.random_bool(0.5) {
+                    self.last_start_top = false;
+                    self.env.reset(PI) // reset pendulum to bottom
+                } else {
+                    self.last_start_top = true;
+                    self.env.reset(0.) // reset pendulum to top
+                };
 
                 ep_ret = 0.;
                 ep_len = 0;
