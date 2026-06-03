@@ -55,6 +55,9 @@ pub struct PPOPendulumController {
 
     rng: StdRng,
     last_start_top: bool,
+
+    k: usize,
+    last_act: f64,
 }
 
 impl PPOPendulumController {
@@ -90,6 +93,8 @@ impl PPOPendulumController {
             num_epochs: 0,
             rng,
             last_start_top,
+            k: 0,
+            last_act: 0.,
         }
     }
 }
@@ -182,15 +187,22 @@ impl ArticulatedController for PPOPendulumController {
         self.num_epochs += 1;
         console_log(&format!("epoch: {}", self.num_epochs));
 
-        // Perform action
-        let q = articulated.q()[0] as f32;
-        let v = articulated.v()[0] as f32;
-        let obs = vec![q, v];
-        let obs_tensor = vec2d_to_tensor(vec![obs.clone()], &Default::default());
+        let act;
+        if self.k == 0 {
+            // Perform action
+            let q = articulated.q()[0] as f32;
+            let v = articulated.v()[0] as f32;
+            let obs = vec![q, v];
+            let obs_tensor = vec2d_to_tensor(vec![obs.clone()], &Default::default());
 
-        // Critical: clamp the same way as in pendulum env
-        let act = self.ac.act(obs_tensor).clamp(-2., 2.);
+            // Critical: clamp the same way as in pendulum env
+            act = self.ac.act(obs_tensor).clamp(-2., 2.) as Float;
+            self.last_act = act;
+        } else {
+            act = self.last_act;
+        }
+        self.k = (self.k + 1) % 6;
 
-        dvector![act as Float]
+        dvector![act]
     }
 }

@@ -42,7 +42,7 @@ impl PendulumEnv {
         let mut pendulum = Self {
             state,
             t: 0.,
-            dt: 0.1,
+            dt: 1. / 10.,
         };
 
         pendulum.reset(0.);
@@ -85,7 +85,7 @@ impl PendulumEnv {
         self.t += self.dt;
 
         // Compute reward
-        let q_goal = 0.;// std::f32::consts::PI;
+        let q_goal = 0.; // std::f32::consts::PI;
         let q = self.state.articulated[0].q()[0] as f32;
 
         let v = self.state.articulated[0].v()[0] as f32;
