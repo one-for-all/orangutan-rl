@@ -17,9 +17,9 @@ use std::f32::consts::PI;
 
 type MyBackend = Autodiff<NdArray>;
 
-const EPOCHS: usize = 500; // 500;
+const EPOCHS: usize = 250; // 500;
 
-const MAX_EP_LEN: usize = 60; // 1000
+const MAX_EP_LEN: usize = 60 * 5; // 1000
 const STEPS_PER_EPOCH: usize = MAX_EP_LEN * 2; // 4000
 const GAMMA: f32 = 0.99; // Discount factor
 const LAM: f32 = 0.97; // Lambda for GAE-Lambda
@@ -41,7 +41,8 @@ fn main() {
     MyBackend::seed(&Default::default(), 0);
     let mut rng = StdRng::seed_from_u64(1);
 
-    let mut env = PendulumEnv::new();
+    let dt = 1. / 60.;
+    let mut env = PendulumEnv::new(dt);
 
     let obs_dim = env.obs_dim();
     let act_dim = env.act_dim();

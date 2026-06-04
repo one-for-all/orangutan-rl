@@ -43,6 +43,8 @@ const TARGET_KL: f32 = 0.01;
 
 const SWINGUP: bool = true;
 
+const CONTROL_HZ_DIVIDER: usize = 6;
+
 pub struct PPOPendulumController {
     ac: MLPActorCriticContinuous<MyBackend>,
     env: PendulumEnv,
@@ -67,7 +69,8 @@ impl PPOPendulumController {
         MyBackend::seed(&Default::default(), 0);
         let rng = StdRng::seed_from_u64(1);
 
-        let env = PendulumEnv::new();
+        let dt = 1. / 60. * CONTROL_HZ_DIVIDER as f32;
+        let env = PendulumEnv::new(dt);
 
         let obs_dim = env.obs_dim();
         let act_dim = env.act_dim();
@@ -201,7 +204,7 @@ impl ArticulatedController for PPOPendulumController {
         } else {
             act = self.last_act;
         }
-        self.k = (self.k + 1) % 6;
+        self.k = (self.k + 1) % CONTROL_HZ_DIVIDER;
 
         dvector![act]
     }

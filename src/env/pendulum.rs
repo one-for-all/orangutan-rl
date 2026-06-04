@@ -16,7 +16,7 @@ pub struct PendulumEnv {
 }
 
 impl PendulumEnv {
-    pub fn new() -> Self {
+    pub fn new(dt: f32) -> Self {
         let mut state = Hybrid::empty();
 
         let m = 1.0;
@@ -42,7 +42,7 @@ impl PendulumEnv {
         let mut pendulum = Self {
             state,
             t: 0.,
-            dt: 1. / 10.,
+            dt: dt,
         };
 
         pendulum.reset(0.);
