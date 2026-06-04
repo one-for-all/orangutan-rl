@@ -45,6 +45,8 @@ const SWINGUP: bool = true;
 
 const CONTROL_HZ_DIVIDER: usize = 6;
 
+const DETERMINISTIC: bool = false;
+
 pub struct PPOPendulumController {
     ac: MLPActorCriticContinuous<MyBackend>,
     env: PendulumEnv,
@@ -72,8 +74,13 @@ impl PPOPendulumController {
     pub fn new() -> Self {
         let HIDDEN_SIZES: Vec<usize> = vec![32, 32];
 
-        MyBackend::seed(&Default::default(), 0);
-        let rng = StdRng::seed_from_u64(1);
+        let rng;
+        if DETERMINISTIC {
+            MyBackend::seed(&Default::default(), 0);
+            rng = StdRng::seed_from_u64(1);
+        } else {
+            rng = StdRng::from_rng(&mut rand::rng());
+        }
 
         let dt = 1. / 60. * CONTROL_HZ_DIVIDER as f32;
         let mut env = PendulumEnv::new(dt);
@@ -176,7 +183,7 @@ impl PPOPendulumController {
 
 impl ArticulatedController for PPOPendulumController {
     fn control(&mut self, articulated: &Articulated, input: &Vec<Float>) -> DVector<Float> {
-        for _ in 0..MAX_EP_LEN {
+        for _ in 0..MAX_EP_LEN / 2 {
             self.run_step();
             self.t += 1;
         }
