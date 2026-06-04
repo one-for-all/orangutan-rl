@@ -3,7 +3,7 @@ const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
 const path = require("path");
 
 const isDev = process.env.NODE_ENV === "development";
-const dist = path.resolve(__dirname, "dist");
+const dist = path.resolve(__dirname, "../docs");
 
 module.exports = (env) => {
   return {
