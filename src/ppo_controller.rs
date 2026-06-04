@@ -183,7 +183,7 @@ impl PPOPendulumController {
 
 impl ArticulatedController for PPOPendulumController {
     fn control(&mut self, articulated: &Articulated, input: &Vec<Float>) -> DVector<Float> {
-        for _ in 0..MAX_EP_LEN / 2 {
+        for _ in 0..MAX_EP_LEN {
             self.run_step();
             self.t += 1;
         }
