@@ -22,10 +22,158 @@
                 height: 100vh;
                 flex: 1;
             }
+
+            /* Space Key Overlay Styles */
+            .space-overlay {
+                position: absolute;
+                bottom: 20px;
+                left: 20px; /* adjust this value as needed to position beside WASD */
+                z-index: 100;
+                display: flex;
+                align-items: center;
+            }
+
+            .space-key {
+                width: 120px;
+                height: 50px;
+                background-color: rgba(255, 255, 255, 0.2);
+                border: 2px solid rgba(255, 255, 255, 0.5);
+                border-radius: 8px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                margin: 5px 5px;
+                color: white;
+                font-family: Arial, sans-serif;
+                font-weight: bold;
+                font-size: 20px;
+                cursor: pointer;
+                user-select: none;
+                touch-action: manipulation;
+                transition: all 0.1s ease;
+            }
+
+            .space-key:hover {
+                background-color: rgba(255, 255, 255, 0.3);
+            }
+
+            .space-key.active {
+                background-color: rgba(255, 255, 255, 0.4);
+                transform: scale(0.95);
+                box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+            }
+
+            /* Mobile portrait orientation styles */
+            @media (max-width: 768px) and (orientation: portrait) {
+                .space-overlay {
+                    bottom: 30px;
+                    left: 20px;
+                }
+
+                .space-key {
+                    height: 40px;
+                    font-size: 24px;
+                }
+            }
+
+            /* Mobile landscape orientation */
+            @media (max-width: 768px) and (orientation: landscape) {
+                .space-overlay {
+                    left: 20px;
+                }
+                .space-key {
+                    width: 150px;
+                    height: 60px;
+                    font-size: 24px;
+                }
+            }
         </style>
     </head>
     <body>
         <div id="threejs"></div>
+        <div class="space-overlay">
+            <div class="space-key" id="key-space">SPACE</div>
+        </div>
         <script src="bundle.js"></script>
+        <script>
+            // Create and dispatch keyboard events
+            function simulateKeyEvent(key, type) {
+                let eventKey = key;
+                let eventCode = `Key${key.toUpperCase()}`;
+                if (key === "space") {
+                    eventKey = " ";
+                    eventCode = "Space";
+                }
+                const event = new KeyboardEvent(type, {
+                    key: eventKey,
+                    code: eventCode,
+                    bubbles: true,
+                    cancelable: true,
+                    composed: true,
+                });
+                document.dispatchEvent(event);
+            }
+
+            // Add mouse/touch event handlers for each key
+            ["space"].forEach((key) => {
+                const element = document.getElementById(`key-${key}`);
+
+                // Mouse events
+                element.addEventListener("mousedown", () => {
+                    element.classList.add("active");
+                    simulateKeyEvent(key, "keydown");
+                });
+
+                element.addEventListener("mouseup", () => {
+                    element.classList.remove("active");
+                    simulateKeyEvent(key, "keyup");
+                });
+
+                element.addEventListener("mouseleave", () => {
+                    if (element.classList.contains("active")) {
+                        element.classList.remove("active");
+                        simulateKeyEvent(key, "keyup");
+                    }
+                });
+
+                // Touch events
+                element.addEventListener("touchstart", (e) => {
+                    e.preventDefault();
+                    element.classList.add("active");
+                    simulateKeyEvent(key, "keydown");
+                });
+
+                element.addEventListener("touchend", (e) => {
+                    e.preventDefault();
+                    element.classList.remove("active");
+                    simulateKeyEvent(key, "keyup");
+                });
+            });
+
+            // Add key press highlighting
+            document.addEventListener("keydown", (e) => {
+                let key = e.key.toLowerCase();
+                if (key === " ") {
+                    key = "space";
+                }
+                if (key === "space") {
+                    document
+                        .getElementById(`key-${key}`)
+                        .classList.add("active");
+                }
+            });
+
+            document.addEventListener("keyup", (e) => {
+                let key = e.key.toLowerCase();
+                if (key === " ") {
+                    key = "space";
+                }
+                if (key === "space") {
+                    document
+                        .getElementById(`key-${key}`)
+                        .classList.remove("active");
+                }
+            });
+        </script>
     </body>
 </html>
