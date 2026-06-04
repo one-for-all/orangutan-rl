@@ -8,4 +8,4 @@ Physics engine: [gorilla-physics](https://github.com/one-for-all/gorilla-physics
 
 Deep Learning framework: [burn](https://github.com/tracel-ai/burn)
 
-<img src="./demo.gif" width="50%">
+<img src="./demo.gif" width="300">
