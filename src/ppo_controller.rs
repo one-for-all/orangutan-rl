@@ -25,10 +25,10 @@ use crate::{
 
 type MyBackend = Autodiff<NdArray>;
 
-const EPOCHS: usize = 500; // 500;
+const EPOCHS: usize = 500;
 
-const MAX_EP_LEN: usize = 60; // 1000
-const STEPS_PER_EPOCH: usize = MAX_EP_LEN * 2; // 4000
+const MAX_EP_LEN: usize = 60;
+const STEPS_PER_EPOCH: usize = MAX_EP_LEN * 2;
 const GAMMA: f32 = 0.99; // Discount factor
 const LAM: f32 = 0.97; // Lambda for GAE-Lambda
 
