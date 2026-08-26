@@ -1,4 +1,4 @@
-# Orangutan Reinforcement Learning (for robotics in Rust)
+# Reinforcement Learning in Browser (for robotics in Rust)
 
 This is an experimental project that runs reinforcement learning in your browser.
 
